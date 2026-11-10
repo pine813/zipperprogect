@@ -295,7 +295,10 @@ public class Level2Director : MonoBehaviour
     {
         if (girl == null) return;
 
-        // 取所有候选里离玩家最远的那个，保证不会刷在出生点旁边
+        // 参照玩家“当前”位置，而不是记录下来的出生点
+        Vector3 playerPos = player != null ? player.transform.position : playerBeachSpawn;
+
+        // 取所有候选里离玩家最远的那个，保证不会刷在玩家旁边
         Vector3 best = Vector3.zero;
         float bestDistance = -1f;
 
@@ -304,7 +307,7 @@ public class Level2Director : MonoBehaviour
             float angle = Random.Range(0f, Mathf.PI * 2f);
             float radius = Random.Range(girlMinRadius, girlMaxRadius);
             Vector3 candidate = SampleGround(radius, angle);
-            float distance = Vector3.Distance(candidate, playerBeachSpawn);
+            float distance = Vector3.Distance(candidate, playerPos);
 
             if (distance > bestDistance)
             {
@@ -315,8 +318,17 @@ public class Level2Director : MonoBehaviour
             if (distance >= girlMinDistanceFromPlayer) break;
         }
 
+        // 硬兜底：还是太近就放到玩家正对面
+        if (bestDistance < girlMinDistanceFromPlayer)
+        {
+            float angle = Mathf.Atan2(playerPos.z, playerPos.x) + Mathf.PI;
+            best = SampleGround((girlMinRadius + girlMaxRadius) * 0.5f, angle);
+            bestDistance = Vector3.Distance(best, playerPos);
+        }
+
         girl.PlaceAt(best);
-        Debug.Log("[Level2] 女孩放在距出生点 " + bestDistance.ToString("F1") + " 米处");
+        Debug.Log("[Level2] 女孩放在距玩家 " + bestDistance.ToString("F1") + " 米处，玩家 "
+                  + playerPos.ToString("F1") + "，女孩 " + best.ToString("F1"));
     }
 
     static Vector3 SampleGround(float radius, float angle)
