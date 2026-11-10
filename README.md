@@ -51,3 +51,29 @@ README.md             本说明
 ---
 
 *Starry Abyss · The Way Home*
+
+---
+
+## 仓库结构（两个游戏，已分开目录）
+
+| 目录 | 内容 |
+| --- | --- |
+| `zipperproject/` | **Zipper：海洋与珍珠**（本项目作者制作，Unity 2022.3.62f3c1） |
+| `starry-abyss/` | **Starry Abyss 星上归途**（队友制作，Unity 2022.3.62f3c1） |
+| `release/` | 星渊归途的发布包与说明 |
+
+两边都在 Unity 2022.3.62f3c1 下开发，互不覆盖。
+
+### 在线试玩（双游戏串联）
+
+https://pine813.github.io/zipperprogect/
+
+- 打通 **Starry Abyss** 后停留 4.5 秒，会自动进入 **Zipper** 第二章
+- 直达第二章：`https://pine813.github.io/zipperprogect/?game=b`
+- 网页版构建放在 `gh-pages` 分支（首页 + `game-a` + `game-b`）
+
+### 通关跳转怎么实现
+
+`starry-abyss/Assets/Scripts/`：
+- `WebBridge.cs` + `Assets/Plugins/WebGL/ZipperBridge.jslib`：WebGL 里向父页面 `postMessage({type:'game-complete'})`
+- `ZipperHandoff.cs`：延时器，`ShowEnd()` 里 `result.Escaped` 时调用 `ZipperHandoff.Schedule(4.5f)`

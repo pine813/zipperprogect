@@ -3067,7 +3067,12 @@ namespace StarryAbyss
             _audio.PlayEnding();
             if (result.Depth > _bestDepth) _bestDepth = result.Depth;
             if (result.Time > _bestTime) _bestTime = result.Time;
-            if (result.Escaped) _escapes++;
+            if (result.Escaped)
+            {
+                _escapes++;
+                // 通关（逃出归航门）后延时进入下一章：Zipper
+                ZipperHandoff.Schedule(4.5f);
+            }
             SaveRecordsIfNeeded();
             _ui.SetRecord(Mathf.RoundToInt(_bestDepth * 100f), _bestTime, _escapes, CodexCount());
             _cameraZoom = 1f;
