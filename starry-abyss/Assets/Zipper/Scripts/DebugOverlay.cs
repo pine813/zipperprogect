@@ -84,9 +84,17 @@ public class DebugOverlay : MonoBehaviour
                 player.transform.position.ToString("F1"), fps)
             : "玩家 (null)";
 
+        Camera mainCamera = Camera.main;
+        string cameraText = mainCamera != null && player != null
+            ? string.Format("相机 {0} 距球 {1:F1} depth {2}",
+                mainCamera.transform.position.ToString("F1"),
+                Vector3.Distance(mainCamera.transform.position, player.transform.position),
+                mainCamera.depth)
+            : "相机 (null)";
+
         float width = Mathf.Min(760f, Screen.width - 24f);
         GUI.color = new Color(0f, 0f, 0f, 0.6f);
-        GUI.DrawTexture(new Rect(8f, 8f, width, 92f), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(8f, 8f, width, 110f), Texture2D.whiteTexture);
         GUI.color = Color.white;
 
         float y = 12f;
@@ -97,16 +105,18 @@ public class DebugOverlay : MonoBehaviour
         GUI.Label(new Rect(14f, y, width - 12f, 20f), level2Text, style);
         y += 18f;
         GUI.Label(new Rect(14f, y, width - 12f, 20f), playerText, style);
+        y += 18f;
+        GUI.Label(new Rect(14f, y, width - 12f, 20f), cameraText, style);
 
         if (errors.Count > 0)
         {
             GUI.color = new Color(0f, 0f, 0f, 0.75f);
-            GUI.DrawTexture(new Rect(8f, 104f, width, 18f * errors.Count + 10f), Texture2D.whiteTexture);
+            GUI.DrawTexture(new Rect(8f, 122f, width, 18f * errors.Count + 10f), Texture2D.whiteTexture);
             GUI.color = Color.white;
 
             for (int i = 0; i < errors.Count; i++)
             {
-                GUI.Label(new Rect(14f, 108f + i * 18f, width - 12f, 20f), "ERR " + errors[i], small);
+                GUI.Label(new Rect(14f, 126f + i * 18f, width - 12f, 20f), "ERR " + errors[i], small);
             }
         }
     }

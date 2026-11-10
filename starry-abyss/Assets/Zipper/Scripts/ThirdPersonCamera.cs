@@ -62,13 +62,26 @@ public class ThirdPersonCamera : MonoBehaviour
 
     void Awake()
     {
+        if (target == null) target = FindPlayerTransform();
         if (target != null) pivot = target.position + pivotOffset;
         if (lockCursor) SetCursorLocked(true);
     }
 
+    /// <summary>跨场景进来时如果引用丢了，就自己找主控球体。</summary>
+    Transform FindPlayerTransform()
+    {
+        OceanPlayerController player = FindObjectOfType<OceanPlayerController>();
+        return player != null ? player.transform : null;
+    }
+
     void LateUpdate()
     {
-        if (target == null) return;
+        if (target == null)
+        {
+            target = FindPlayerTransform();
+            if (target == null) return;
+            SnapBehindTarget();
+        }
 
         if (lockCursor)
         {
