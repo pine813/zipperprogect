@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Zipper 双游戏串联</title>
+<title>Zipper 鍙屾父鎴忎覆鑱?/title>
 <style>
   :root { --bar: 56px; }
   * { box-sizing: border-box; }
@@ -41,40 +41,38 @@
 
 <div id="bar">
   <div class="dot" id="dot"></div>
-  <div id="title">加载中…</div>
+  <div id="title">鍔犺浇涓€?/div>
   <div id="steps"></div>
   <div id="spacer"></div>
-  <button id="nextBtn" class="primary">通关了，进入下一个 →</button>
-  <button id="restartBtn">重玩</button>
+  <button id="nextBtn" class="primary">閫氬叧浜嗭紝杩涘叆涓嬩竴涓?鈫?/button>
+  <button id="restartBtn">閲嶇帺</button>
 </div>
 
 <iframe id="stage" allow="autoplay; fullscreen; gamepad; xr-spatial-tracking"></iframe>
 
 <div id="overlay">
-  <h1>全部通关 🎉</h1>
-  <p id="overlayText">两个游戏都完成了</p>
-  <button id="againBtn" class="primary">从头再来</button>
+  <h1>鍏ㄩ儴閫氬叧 馃帀</h1>
+  <p id="overlayText">涓や釜娓告垙閮藉畬鎴愪簡</p>
+  <button id="againBtn" class="primary">浠庡ご鍐嶆潵</button>
 </div>
 
-<div id="hint">如果第一个游戏结束后没有自动跳转，点右上角「通关了，进入下一个」</div>
+<div id="hint">濡傛灉绗竴涓父鎴忕粨鏉熷悗娌℃湁鑷姩璺宠浆锛岀偣鍙充笂瑙掋€岄€氬叧浜嗭紝杩涘叆涓嬩竴涓€?/div>
 
 <script>
 /* ============================================================
-   双游戏串联外壳
-   - 两个 Unity WebGL 构建分别放在 game-a/ 和 game-b/
-   - 第一个游戏通关后可通过 postMessage 通知，也可手动点按钮
-   - 支持 ?game=a / ?game=b 直接进入某一段
-   ============================================================ */
+   鍙屾父鎴忎覆鑱斿澹?   - 涓や釜 Unity WebGL 鏋勫缓鍒嗗埆鏀惧湪 game-a/ 鍜?game-b/
+   - 绗竴涓父鎴忛€氬叧鍚庡彲閫氳繃 postMessage 閫氱煡锛屼篃鍙墜鍔ㄧ偣鎸夐挳
+   - 鏀寔 ?game=a / ?game=b 鐩存帴杩涘叆鏌愪竴娈?   ============================================================ */
 const GAMES = [
   {
     id: 'starry',
-    title: '第一章 · Starry Abyss 星上归途（队友作品）',
-    src: 'game-a/index.html'
+    title: '绗竴绔?路 Starry Abyss 鏄熶笂褰掗€旓紙闃熷弸浣滃搧锛?,
+    src: 'game-a/index.html?v=20261110a'
   },
   {
     id: 'zipper',
-    title: '第二章 · Zipper：海洋与珍珠',
-    src: 'game-b/index.html'
+    title: '绗簩绔?路 Zipper锛氭捣娲嬩笌鐝嶇彔',
+    src: 'game-b/index.html?v=20261110a'
   }
 ];
 
@@ -114,7 +112,7 @@ function load (i) {
   if (index >= GAMES.length) {
     dotEl.classList.add('done');
     overlay.classList.add('show');
-    overlayTxt.textContent = '两个游戏都完成了，谢谢试玩！';
+    overlayTxt.textContent = '涓や釜娓告垙閮藉畬鎴愪簡锛岃阿璋㈣瘯鐜╋紒';
     stage.src = 'about:blank';
     renderSteps();
     return;
@@ -129,7 +127,7 @@ function load (i) {
 
 function next () { load(index + 1); }
 
-/* 通关闭环：Unity 侧调用 WebGL 的 ZipperGameComplete() 会 postMessage 过来 */
+/* 閫氬叧闂幆锛歎nity 渚ц皟鐢?WebGL 鐨?ZipperGameComplete() 浼?postMessage 杩囨潵 */
 window.addEventListener('message', (event) => {
   const data = event.data;
   if (!data) return;
