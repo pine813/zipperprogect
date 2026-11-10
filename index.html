@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Zipper 鍙屾父鎴忎覆鑱?/title>
+<title>Zipper 閸欏本鐖堕幋蹇庤閼?/title>
 <style>
   :root { --bar: 56px; }
   * { box-sizing: border-box; }
@@ -41,38 +41,37 @@
 
 <div id="bar">
   <div class="dot" id="dot"></div>
-  <div id="title">鍔犺浇涓€?/div>
+  <div id="title">閸旂姾娴囨稉顓涒偓?/div>
   <div id="steps"></div>
   <div id="spacer"></div>
-  <button id="nextBtn" class="primary">閫氬叧浜嗭紝杩涘叆涓嬩竴涓?鈫?/button>
-  <button id="restartBtn">閲嶇帺</button>
+  <button id="nextBtn" class="primary">闁艾鍙ф禍鍡礉鏉╂稑鍙嗘稉瀣╃娑?閳?/button>
+  <button id="restartBtn">闁插秶甯?/button>
 </div>
 
 <iframe id="stage" allow="autoplay; fullscreen; gamepad; xr-spatial-tracking"></iframe>
 
 <div id="overlay">
-  <h1>鍏ㄩ儴閫氬叧 馃帀</h1>
-  <p id="overlayText">涓や釜娓告垙閮藉畬鎴愪簡</p>
-  <button id="againBtn" class="primary">浠庡ご鍐嶆潵</button>
+  <h1>閸忋劑鍎撮柅姘彠 棣冨竴</h1>
+  <p id="overlayText">娑撱倓閲滃〒鍛婂灆闁棄鐣幋鎰啊</p>
+  <button id="againBtn" class="primary">娴犲骸銇旈崘宥嗘降</button>
 </div>
 
-<div id="hint">濡傛灉绗竴涓父鎴忕粨鏉熷悗娌℃湁鑷姩璺宠浆锛岀偣鍙充笂瑙掋€岄€氬叧浜嗭紝杩涘叆涓嬩竴涓€?/div>
+<div id="hint">婵″倹鐏夌粭顑跨娑擃亝鐖堕幋蹇曠波閺夌喎鎮楀▽鈩冩箒閼奉亜濮╃捄瀹犳祮閿涘瞼鍋ｉ崣鍏呯瑐鐟欐帇鈧矂鈧艾鍙ф禍鍡礉鏉╂稑鍙嗘稉瀣╃娑擃亗鈧?/div>
 
 <script>
 /* ============================================================
-   鍙屾父鎴忎覆鑱斿澹?   - 涓や釜 Unity WebGL 鏋勫缓鍒嗗埆鏀惧湪 game-a/ 鍜?game-b/
-   - 绗竴涓父鎴忛€氬叧鍚庡彲閫氳繃 postMessage 閫氱煡锛屼篃鍙墜鍔ㄧ偣鎸夐挳
-   - 鏀寔 ?game=a / ?game=b 鐩存帴杩涘叆鏌愪竴娈?   ============================================================ */
+   閸欏本鐖堕幋蹇庤閼辨柨顦绘竟?   - 娑撱倓閲?Unity WebGL 閺嬪嫬缂撻崚鍡楀焼閺€鎯ф躬 game-a/ 閸?game-b/
+   - 缁楊兛绔存稉顏呯埗閹村繘鈧艾鍙ч崥搴″讲闁俺绻?postMessage 闁氨鐓￠敍灞肩瘍閸欘垱澧滈崝銊у仯閹稿鎸?   - 閺€顖涘瘮 ?game=a / ?game=b 閻╁瓨甯存潻娑樺弳閺屾劒绔村▓?   ============================================================ */
 const GAMES = [
   {
     id: 'starry',
-    title: '绗竴绔?路 Starry Abyss 鏄熶笂褰掗€旓紙闃熷弸浣滃搧锛?,
+    title: '缁楊兛绔寸粩?璺?Starry Abyss 閺勭喍绗傝ぐ鎺椻偓鏃撶礄闂冪喎寮告担婊冩惂閿?,
     src: 'game-a/index.html?v=20261110a'
   },
   {
     id: 'zipper',
-    title: '绗簩绔?路 Zipper锛氭捣娲嬩笌鐝嶇彔',
-    src: 'game-b/index.html?v=20261110a'
+    title: '缁楊兛绨╃粩?璺?Zipper閿涙碍鎹ｅú瀣╃瑢閻濆秶褰?,
+    src: 'game-b/index.html?v=20261110b'
   }
 ];
 
@@ -112,7 +111,7 @@ function load (i) {
   if (index >= GAMES.length) {
     dotEl.classList.add('done');
     overlay.classList.add('show');
-    overlayTxt.textContent = '涓や釜娓告垙閮藉畬鎴愪簡锛岃阿璋㈣瘯鐜╋紒';
+    overlayTxt.textContent = '娑撱倓閲滃〒鍛婂灆闁棄鐣幋鎰啊閿涘矁闃跨拫銏ｇ槸閻溾晪绱?;
     stage.src = 'about:blank';
     renderSteps();
     return;
@@ -127,7 +126,7 @@ function load (i) {
 
 function next () { load(index + 1); }
 
-/* 閫氬叧闂幆锛歎nity 渚ц皟鐢?WebGL 鐨?ZipperGameComplete() 浼?postMessage 杩囨潵 */
+/* 闁艾鍙ч梻顓犲箚閿涙瓗nity 娓氀嗙殶閻?WebGL 閻?ZipperGameComplete() 娴?postMessage 鏉╁洦娼?*/
 window.addEventListener('message', (event) => {
   const data = event.data;
   if (!data) return;
