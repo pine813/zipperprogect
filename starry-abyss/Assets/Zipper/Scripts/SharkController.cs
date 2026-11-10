@@ -67,6 +67,7 @@ public class SharkController : MonoBehaviour
 
     public bool IsAlerting => phase == Phase.Alert;
     public bool IsChasing => phase == Phase.Chase;
+    public bool HuntingEnabled => huntingEnabled;
     public bool SeesTarget => seesTarget;
     public float ContactRadius => contactRadius;
     public float VisionRange => visionRange;
@@ -94,6 +95,15 @@ public class SharkController : MonoBehaviour
             phaseTimer = 0f;
             chaseTimer = 0f;
         }
+    }
+
+    /// <summary>回到自由游动：清掉残留的警戒/追击状态，重新可以扫描到小鱼。</summary>
+    public void ResetToPatrol()
+    {
+        phase = Phase.Patrol;
+        phaseTimer = 0f;
+        chaseTimer = 0f;
+        seesTarget = false;
     }
 
     /// <summary>刚由水花变成鲨鱼时，绕着海洋中心螺旋散开一小段，再进入巡逻。</summary>

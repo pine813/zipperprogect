@@ -143,14 +143,16 @@ public class ClamController : MonoBehaviour
         if (pearl != null) pearl.SetActive(false);
     }
 
-    /// <summary>玩家撞到珍珠则收走，返回 true。</summary>
+    /// <summary>玩家撞到珍珠则收走，返回 true。只要珍珠露出来，碰到就算。</summary>
     public bool TryCollect(Vector3 playerPosition)
     {
-        if (!PearlAvailable || pearl == null) return false;
+        if (!hasPearl || pearl == null || !pearl.activeSelf) return false;
 
         Vector3 delta = pearl.transform.position - playerPosition;
-        delta.y *= 0.6f;
-        if (delta.magnitude > collectRadius) return false;
+        delta.y *= 0.9f;
+
+        // 加上主控球体自身半径，真正做到“碰到就变珍珠”
+        if (delta.magnitude > collectRadius + 0.4f) return false;
 
         hasPearl = false;
         pearl.SetActive(false);
