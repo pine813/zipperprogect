@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace StarryAbyss
 {
@@ -658,7 +659,28 @@ namespace StarryAbyss
         {
             if (Phase != GamePhase.End || _transitioning) return;
             _ui.PlayClick();
+
+            // 通关（逃出归航门）后点「继续星旅」：进入第二关 —— Zipper：海洋与珍珠
+            if (_lastResult.Escaped)
+            {
+                StartCoroutine(LoadSecondChapterRoutine());
+                return;
+            }
+
             StartCoroutine(NextRoundRoutine());
+        }
+
+        /// <summary>通关后过渡到第二关场景（Zipper 的海洋 + 沙滩 + 珍珠）。</summary>
+        private IEnumerator LoadSecondChapterRoutine()
+        {
+            _transitioning = true;
+            _autoRemain = -1f;
+            _audio?.SetPaused(false);
+            _ui.SetVeil(1f);
+            yield return new WaitForSecondsRealtime(0.7f);
+
+            Debug.Log("[StarryAbyss] 进入第二关：ZipperLevel");
+            SceneManager.LoadScene("ZipperLevel");
         }
 
         private IEnumerator NextRoundRoutine()
@@ -3051,9 +3073,10 @@ namespace StarryAbyss
             _ui.SetPortalMarker(Vector3.zero, false);
             _ui.SetPlayerMarker(Vector3.zero, false);
             if (_orbitPreview != null) _orbitPreview.positionCount = 0;
-            _autoRemain = 10f;
+            // 通关时不再自动倒计时重开，等玩家点「继续星旅」进入第二关
+            _autoRemain = result.Escaped ? -1f : 10f;
             _autoDisplay = 10;
-            _ui.ShowEnd(result, 10);
+            _ui.ShowEnd(result, result.Escaped ? -1 : 10);
             if (result.TrailScore > _bestTrailScore)
             {
                 _bestTrailScore = result.TrailScore;
@@ -3070,8 +3093,7 @@ namespace StarryAbyss
             if (result.Escaped)
             {
                 _escapes++;
-                // 通关（逃出归航门）后延时进入下一章：Zipper
-                ZipperHandoff.Schedule(4.5f);
+                // 通关后不再自动跳转：等玩家点「继续星旅」进入第二关（NextRoundFromEnd）
             }
             SaveRecordsIfNeeded();
             _ui.SetRecord(Mathf.RoundToInt(_bestDepth * 100f), _bestTime, _escapes, CodexCount());

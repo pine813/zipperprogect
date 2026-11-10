@@ -66,6 +66,9 @@ namespace Zipper.EditorTools
             GameObject mobileObject = new GameObject("MobileControls");
             mobileObject.AddComponent<MobileControls>();
 
+            GameObject debugObject = new GameObject("DebugOverlay");
+            debugObject.AddComponent<DebugOverlay>();
+
             GameObject sharkPrefab = CreateSharkPrefab(materials);
             GameObject shrimpPrefab = CreateShrimpPrefab(materials);
             GameObject dropletPrefab = CreateDropletPrefab(materials);

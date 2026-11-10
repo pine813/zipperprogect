@@ -33,9 +33,19 @@ namespace StarryAbyss.EditorTools
                 return;
             }
 
+            // 按 Build Settings 里启用的场景打包（Main = 星渊归途，ZipperLevel = 第二关）
+            var scenes = new System.Collections.Generic.List<string>();
+            foreach (EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
+            {
+                if (scene.enabled) scenes.Add(scene.path);
+            }
+            if (scenes.Count == 0) scenes.Add(ScenePath);
+
+            Debug.Log("[StarryWebGL] 打包场景: " + string.Join(", ", scenes.ToArray()));
+
             BuildPlayerOptions options = new BuildPlayerOptions
             {
-                scenes = new[] { ScenePath },
+                scenes = scenes.ToArray(),
                 locationPathName = OutputDirectory,
                 target = BuildTarget.WebGL,
                 options = BuildOptions.None
