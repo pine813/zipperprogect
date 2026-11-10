@@ -182,7 +182,7 @@ namespace Zipper.EditorTools
                     break;
 
                 case 40:
-                    // 球碰到水 → 变小鱼；回到岸上 → 变回球
+                    // 球碰到水 → 变小鱼；被鲨鱼咬 → 泡沫死亡 → 回沙滩变回球
                     if (waterStep == 0)
                     {
                         waterSpot = player.transform.position;
@@ -193,11 +193,51 @@ namespace Zipper.EditorTools
                     else if (waterStep == 1 && simulated - phaseTime > 0.4f)
                     {
                         Check(player.IsSwimming, "球碰到水后变成小鱼");
-                        player.Teleport(waterSpot);
-                        waterStep = 2;
+
+                        SharkController biteShark = level1.GetActiveShark(0);
+                        if (biteShark != null)
+                        {
+                            player.Teleport(biteShark.transform.position);
+                            waterStep = 4;
+                        }
+                        else
+                        {
+                            player.Teleport(waterSpot);
+                            waterStep = 5;
+                        }
+
                         phaseTime = simulated;
                     }
-                    else if (waterStep == 2 && simulated - phaseTime > 0.8f)
+                    else if (waterStep == 4)
+                    {
+                        // 无敌时间过后，每帧把小鱼贴到鲨鱼身上，直到被咬
+                        if (simulated - phaseTime > 1.7f)
+                        {
+                            SharkController biteShark = level1.GetActiveShark(0);
+                            if (biteShark != null) player.Teleport(biteShark.transform.position);
+
+                            if (!player.VisualsVisible)
+                            {
+                                Check(true, "被鲨鱼咬到后变成泡沫");
+                                waterStep = 6;
+                                phaseTime = simulated;
+                            }
+                            else if (simulated - phaseTime > 4.5f)
+                            {
+                                Check(false, "被鲨鱼咬到后变成泡沫（超时未触发）");
+                                waterStep = 6;
+                                phaseTime = simulated;
+                            }
+                        }
+                    }
+                    else if (waterStep == 6 && simulated - phaseTime > 1.8f)
+                    {
+                        Check(player.CurrentVisual == PlayerVisual.Ball, "泡沫消散后回到沙滩变回球体");
+                        waterStep = 0;
+                        phase = 41;
+                        phaseTime = simulated;
+                    }
+                    else if (waterStep == 5 && simulated - phaseTime > 0.8f)
                     {
                         Check(!player.IsSwimming, "回到岸上重新变回球体");
                         waterStep = 0;
