@@ -453,6 +453,11 @@ public class Level1Director : MonoBehaviour
         toast = "吃到小虾米，体力 +1";
     }
 
+    public void SpawnFoamAt(Vector3 position)
+    {
+        SpawnFoam(position);
+    }
+
     void SpawnFoam(Vector3 position)
     {
         if (bubblePrefab == null) return;

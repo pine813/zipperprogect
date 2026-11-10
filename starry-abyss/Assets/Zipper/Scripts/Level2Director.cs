@@ -43,6 +43,8 @@ public class Level2Director : MonoBehaviour
     float titleTimer;
     Transform pearlHint;
     float hintPhase;
+    float sharkBiteTimer;
+    float fishGraceUntil;
     string toast = "";
     Vector3 playerBeachSpawn;
     bool usingPlaceholder;
@@ -113,6 +115,15 @@ public class Level2Director : MonoBehaviour
         if (dt <= 0f) return;
         stageTimer += dt;
         if (stage != Stage.Dormant && titleTimer < titleDuration) titleTimer += dt;
+
+        // 被鲨鱼咬到后的泡沫死亡过程：只推进倒计时，其他逻辑暂停
+        if (sharkBiteTimer > 0f)
+        {
+            UpdateSharkBite(dt);
+            UpdatePearlHint(dt);
+            return;
+        }
+
         switch (stage)
         {
             case Stage.Dormant:
@@ -147,7 +158,64 @@ public class Level2Director : MonoBehaviour
 
         UpdatePearlHint(dt);
 
-        if (stage != Stage.Dormant) UpdateWaterRule();
+        if (stage != Stage.Dormant)
+        {
+            UpdateWaterRule();
+            UpdateSharkBite(dt);
+        }
+    }
+
+    /// <summary>小鱼在水里被鲨鱼碰到 → 变泡沫死亡，再回到沙滩。</summary>
+    void UpdateSharkBite(float dt)
+    {
+        if (sharkBiteTimer > 0f)
+        {
+            sharkBiteTimer -= dt;
+            if (sharkBiteTimer <= 0f) RespawnAfterSharkBite();
+            return;
+        }
+
+        if (stage != Stage.Beach && stage != Stage.PearlFormed) return;
+        if (player == null || level1 == null) return;
+        if (!player.IsSwimming) return;
+        if (Time.time < fishGraceUntil) return;
+
+        int count = level1.ActiveSharkCount;
+        for (int i = 0; i < count; i++)
+        {
+            SharkController shark = level1.GetActiveShark(i);
+            if (shark == null) continue;
+
+            Vector3 delta = shark.transform.position - player.transform.position;
+            if (delta.magnitude <= shark.ContactRadius)
+            {
+                BeginSharkBite();
+                return;
+            }
+        }
+    }
+
+    void BeginSharkBite()
+    {
+        sharkBiteTimer = 1.4f;
+        player.SetInputEnabled(false);
+        player.BeginSink();
+        player.SetVisualsVisible(false);
+
+        if (level1 != null) level1.SpawnFoamAt(player.transform.position);
+        GameAudio.PlaySplash();
+        toast = "被鲨鱼咬了……变成泡沫";
+        Debug.Log("[Level2] 小鱼被鲨鱼咬到，泡沫死亡");
+    }
+
+    void RespawnAfterSharkBite()
+    {
+        player.SetVisualsVisible(true);
+        player.Teleport(playerBeachSpawn);
+        player.EnterBeach();
+        player.SetInputEnabled(true);
+        toast = "在沙滩上重新变回球体";
+        Debug.Log("[Level2] 泡沫消散，回到沙滩出生点");
     }
 
     /// <summary>第二关里球体碰到水就变小鱼，回到岸上再变回球；同时让鲨鱼恢复扫描/追杀。</summary>
@@ -172,6 +240,7 @@ public class Level2Director : MonoBehaviour
 
         player.EnterWater();
         level1.ResumeSharkHunting();
+        fishGraceUntil = Time.time + 1.5f;
         toast = "碰到水，变成小鱼了！小心鲨鱼";
         Debug.Log("[Level2] 球碰到水 → 变成小鱼，鲨鱼恢复追杀");
     }
