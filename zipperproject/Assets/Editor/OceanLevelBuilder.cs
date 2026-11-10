@@ -855,6 +855,11 @@ namespace Zipper.EditorTools
             GirlNPC npc = root.AddComponent<GirlNPC>();
             npc.ConfigureVisual(model != null ? model.transform : root.transform);
 
+            // 头顶的珍珠提示：开局在沙滩阶段亮着，告诉玩家“带一颗珍珠来”
+            GameObject pearlHint = CreatePrimitive("PearlHint", PrimitiveType.Sphere, root.transform,
+                new Vector3(0f, 2.15f, 0f), Vector3.one * 0.34f, Quaternion.identity, materials.Pearl);
+            pearlHint.SetActive(false);
+
             // 初始位置放在沙滩上（运行时会随机刷新）
             float startAngle = 35f * Mathf.Deg2Rad;
             float startRadius = 56f;

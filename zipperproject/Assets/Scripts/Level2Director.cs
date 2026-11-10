@@ -41,6 +41,8 @@ public class Level2Director : MonoBehaviour
     float girlRefreshTimer;
     int caughtCount;
     float titleTimer;
+    Transform pearlHint;
+    float hintPhase;
     string toast = "";
     Vector3 playerBeachSpawn;
     bool usingPlaceholder;
@@ -77,6 +79,12 @@ public class Level2Director : MonoBehaviour
             finaleImage = BuildFallbackTexture();
             usingPlaceholder = true;
         }
+
+        if (girl != null)
+        {
+            pearlHint = girl.transform.Find("PearlHint");
+            if (pearlHint != null) pearlHint.gameObject.SetActive(false);
+        }
     }
 
     void Update()
@@ -85,7 +93,6 @@ public class Level2Director : MonoBehaviour
         if (dt <= 0f) return;
         stageTimer += dt;
         if (stage != Stage.Dormant && titleTimer < titleDuration) titleTimer += dt;
-
         switch (stage)
         {
             case Stage.Dormant:
@@ -117,6 +124,22 @@ public class Level2Director : MonoBehaviour
             case Stage.Cleared:
                 break;
         }
+
+        UpdatePearlHint(dt);
+    }
+
+    /// <summary>沙滩阶段在女孩头顶浮一颗珍珠：不加文字也能看懂“要带珍珠来”。</summary>
+    void UpdatePearlHint(float dt)
+    {
+        if (pearlHint == null) return;
+
+        bool show = stage == Stage.Beach;
+        if (pearlHint.gameObject.activeSelf != show) pearlHint.gameObject.SetActive(show);
+        if (!show) return;
+
+        hintPhase += dt;
+        pearlHint.localPosition = new Vector3(0f, 2.15f + Mathf.Sin(hintPhase * 2.2f) * 0.12f, 0f);
+        pearlHint.Rotate(Vector3.up, 70f * dt, Space.Self);
     }
 
     /// <summary>开始第二关：球体落到沙滩，贝壳开始工作，女孩随机出现。</summary>
@@ -272,16 +295,28 @@ public class Level2Director : MonoBehaviour
     {
         if (girl == null) return;
 
-        Vector3 candidate = Vector3.zero;
-        for (int attempt = 0; attempt < 24; attempt++)
+        // 取所有候选里离玩家最远的那个，保证不会刷在出生点旁边
+        Vector3 best = Vector3.zero;
+        float bestDistance = -1f;
+
+        for (int attempt = 0; attempt < 30; attempt++)
         {
             float angle = Random.Range(0f, Mathf.PI * 2f);
             float radius = Random.Range(girlMinRadius, girlMaxRadius);
-            candidate = SampleGround(radius, angle);
-            if (Vector3.Distance(candidate, playerBeachSpawn) >= girlMinDistanceFromPlayer) break;
+            Vector3 candidate = SampleGround(radius, angle);
+            float distance = Vector3.Distance(candidate, playerBeachSpawn);
+
+            if (distance > bestDistance)
+            {
+                bestDistance = distance;
+                best = candidate;
+            }
+
+            if (distance >= girlMinDistanceFromPlayer) break;
         }
 
-        girl.PlaceAt(candidate);
+        girl.PlaceAt(best);
+        Debug.Log("[Level2] 女孩放在距出生点 " + bestDistance.ToString("F1") + " 米处");
     }
 
     static Vector3 SampleGround(float radius, float angle)

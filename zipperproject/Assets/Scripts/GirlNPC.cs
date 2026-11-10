@@ -8,7 +8,7 @@ public class GirlNPC : MonoBehaviour
 {
     [SerializeField] Transform target;
     [SerializeField] Transform visual;
-    [SerializeField] float touchRadius = 1.15f;
+    [SerializeField] float touchRadius = 1.4f;
     [SerializeField] float turnSpeed = 2f;
     [SerializeField] float bobAmplitude = 0.03f;
     [SerializeField] float bobSpeed = 1.2f;
