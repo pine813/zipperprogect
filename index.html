@@ -1,145 +1,131 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Zipper 閸欏本鐖堕幋蹇庤閼?/title>
-<style>
-  :root { --bar: 56px; }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; background: #0b1220; color: #e8eefc;
-    font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif; overflow: hidden; }
-  #bar { height: var(--bar); display: flex; align-items: center; gap: 14px;
-    padding: 0 16px; background: #101a2e; border-bottom: 1px solid #1e2a44; }
-  #bar .dot { width: 10px; height: 10px; border-radius: 50%; background: #3b82f6; }
-  #bar .dot.done { background: #34d399; }
-  #title { font-size: 15px; font-weight: 600; letter-spacing: .3px; }
-  #steps { display: flex; gap: 8px; margin-left: 8px; }
-  #steps span { font-size: 12px; padding: 3px 10px; border-radius: 999px;
-    background: #1b2740; color: #93a5c6; border: 1px solid #26334f; }
-  #steps span.active { background: #1d4ed8; border-color: #3b82f6; color: #fff; }
-  #steps span.done { background: #0f3d2e; border-color: #34d399; color: #a7f3d0; }
-  #spacer { flex: 1; }
-  button { font: inherit; font-size: 13px; padding: 8px 14px; border-radius: 8px;
-    border: 1px solid #2a3a5c; background: #17233b; color: #dbe6ff; cursor: pointer; }
-  button:hover { background: #1e2c49; }
-  button.primary { background: #2563eb; border-color: #3b82f6; color: #fff; }
-  button.primary:hover { background: #1d4ed8; }
-  #stage { position: absolute; top: var(--bar); left: 0; right: 0; bottom: 0;
-    width: 100%; height: calc(100% - var(--bar)); border: 0; background: #000; }
-  #overlay { position: absolute; inset: var(--bar) 0 0 0; display: none;
-    align-items: center; justify-content: center; flex-direction: column; gap: 18px;
-    background: radial-gradient(circle at 50% 40%, #14213b, #070c16 70%); z-index: 5; }
-  #overlay.show { display: flex; }
-  #overlay h1 { margin: 0; font-size: 30px; letter-spacing: 2px; }
-  #overlay p { margin: 0; color: #9fb2d4; font-size: 14px; }
-  #hint { position: absolute; left: 50%; transform: translateX(-50%); bottom: 18px;
-    font-size: 12px; color: #7f92b3; z-index: 6; pointer-events: none; }
-</style>
-</head>
-<body>
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | Starry Abyss</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+  </head>
+  <body>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        <div id="unity-webgl-logo"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">Starry Abyss</div>
+      </div>
+    </div>
+    <script>
 
-<div id="bar">
-  <div class="dot" id="dot"></div>
-  <div id="title">閸旂姾娴囨稉顓涒偓?/div>
-  <div id="steps"></div>
-  <div id="spacer"></div>
-  <button id="nextBtn" class="primary">闁艾鍙ф禍鍡礉鏉╂稑鍙嗘稉瀣╃娑?閳?/button>
-  <button id="restartBtn">闁插秶甯?/button>
-</div>
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      var warningBanner = document.querySelector("#unity-warning");
 
-<iframe id="stage" allow="autoplay; fullscreen; gamepad; xr-spatial-tracking"></iframe>
+      // Shows a temporary message banner/ribbon for a few seconds, or
+      // a permanent error message on top of the canvas if type=='error'.
+      // If type=='warning', a yellow highlight color is used.
+      // Modify or remove this function to customize the visually presented
+      // way that non-critical warnings and error messages are presented to the
+      // user.
+      function unityShowBanner(msg, type) {
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
 
-<div id="overlay">
-  <h1>閸忋劑鍎撮柅姘彠 棣冨竴</h1>
-  <p id="overlayText">娑撱倓閲滃〒鍛婂灆闁棄鐣幋鎰啊</p>
-  <button id="againBtn" class="primary">娴犲骸銇旈崘宥嗘降</button>
-</div>
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/WebGL.loader.js?v=20261110c";
+      var config = {
+        dataUrl: buildUrl + "/WebGL.data?v=20261110c",
+        frameworkUrl: buildUrl + "/WebGL.framework.js?v=20261110c",
+        codeUrl: buildUrl + "/WebGL.wasm?v=20261110c",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Atelier of the Painted Sky",
+        productName: "Starry Abyss",
+        productVersion: "1.0.0",
+        showBanner: unityShowBanner,
+      };
 
-<div id="hint">婵″倹鐏夌粭顑跨娑擃亝鐖堕幋蹇曠波閺夌喎鎮楀▽鈩冩箒閼奉亜濮╃捄瀹犳祮閿涘瞼鍋ｉ崣鍏呯瑐鐟欐帇鈧矂鈧艾鍙ф禍鍡礉鏉╂稑鍙嗘稉瀣╃娑擃亗鈧?/div>
+      // By default, Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
 
-<script>
-/* ============================================================
-   閸欏本鐖堕幋蹇庤閼辨柨顦绘竟?   - 娑撱倓閲?Unity WebGL 閺嬪嫬缂撻崚鍡楀焼閺€鎯ф躬 game-a/ 閸?game-b/
-   - 缁楊兛绔存稉顏呯埗閹村繘鈧艾鍙ч崥搴″讲闁俺绻?postMessage 闁氨鐓￠敍灞肩瘍閸欘垱澧滈崝銊у仯閹稿鎸?   - 閺€顖涘瘮 ?game=a / ?game=b 閻╁瓨甯存潻娑樺弳閺屾劒绔村▓?   ============================================================ */
-const GAMES = [
-  {
-    id: 'starry',
-    title: '缁楊兛绔寸粩?璺?Starry Abyss 閺勭喍绗傝ぐ鎺椻偓鏃撶礄闂冪喎寮告担婊冩惂閿?,
-    src: 'game-a/index.html?v=20261110a'
-  },
-  {
-    id: 'zipper',
-    title: '缁楊兛绨╃粩?璺?Zipper閿涙碍鎹ｅú瀣╃瑢閻濆秶褰?,
-    src: 'game-b/index.html?v=20261110b'
-  }
-];
+      // If you would like all file writes inside Unity Application.persistentDataPath
+      // directory to automatically persist so that the contents are remembered when
+      // the user revisits the site the next time, uncomment the following line:
+      // config.autoSyncPersistentDataPath = true;
+      // This autosyncing is currently not the default behavior to avoid regressing
+      // existing user projects that might rely on the earlier manual
+      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
+      // expected to change.
 
-const stage      = document.getElementById('stage');
-const titleEl    = document.getElementById('title');
-const stepsEl    = document.getElementById('steps');
-const dotEl      = document.getElementById('dot');
-const overlay    = document.getElementById('overlay');
-const overlayTxt = document.getElementById('overlayText');
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
 
-let index = 0;
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        container.className = "unity-mobile";
+        canvas.className = "unity-mobile";
 
-function readQuery () {
-  const params = new URLSearchParams(location.search);
-  const g = (params.get('game') || '').toLowerCase();
-  if (g === 'b' || g === 'zipper' || g === '2') return 1;
-  if (g === 'a' || g === 'teammate' || g === '1') return 0;
-  return 0;
-}
+        // To lower canvas resolution on mobile devices to gain some
+        // performance, uncomment the following line:
+        // config.devicePixelRatio = 1;
 
-function renderSteps () {
-  stepsEl.innerHTML = '';
-  GAMES.forEach((game, i) => {
-    const span = document.createElement('span');
-    span.textContent = (i + 1) + '. ' + game.title;
-    if (i === index) span.className = 'active';
-    else if (i < index) span.className = 'done';
-    stepsEl.appendChild(span);
-  });
-  dotEl.classList.toggle('done', index >= GAMES.length);
-}
 
-function load (i) {
-  index = i;
-  overlay.classList.remove('show');
+      } else {
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
 
-  if (index >= GAMES.length) {
-    dotEl.classList.add('done');
-    overlay.classList.add('show');
-    overlayTxt.textContent = '娑撱倓閲滃〒鍛婂灆闁棄鐣幋鎰啊閿涘矁闃跨拫銏ｇ槸閻溾晪绱?;
-    stage.src = 'about:blank';
-    renderSteps();
-    return;
-  }
+        canvas.style.width = "960px";
+        canvas.style.height = "600px";
+      }
 
-  const game = GAMES[index];
-  titleEl.textContent = game.title;
-  stage.src = game.src;
-  document.getElementById('nextBtn').style.display = index < GAMES.length - 1 ? '' : 'none';
-  renderSteps();
-}
+      loadingBar.style.display = "block";
 
-function next () { load(index + 1); }
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          progressBarFull.style.width = 100 * progress + "%";
+              }).then((unityInstance) => {
+                loadingBar.style.display = "none";
+                fullscreenButton.onclick = () => {
+                  unityInstance.SetFullscreen(1);
+                };
+              }).catch((message) => {
+                alert(message);
+              });
+            };
 
-/* 闁艾鍙ч梻顓犲箚閿涙瓗nity 娓氀嗙殶閻?WebGL 閻?ZipperGameComplete() 娴?postMessage 鏉╁洦娼?*/
-window.addEventListener('message', (event) => {
-  const data = event.data;
-  if (!data) return;
+      document.body.appendChild(script);
 
-  if (typeof data === 'string' && data === 'game-complete') { next(); return; }
-  if (typeof data === 'object' && (data.type === 'game-complete' || data.complete === true)) { next(); }
-});
-
-document.getElementById('nextBtn').addEventListener('click', next);
-document.getElementById('restartBtn').addEventListener('click', () => load(0));
-document.getElementById('againBtn').addEventListener('click', () => load(0));
-
-load(readQuery());
-</script>
-</body>
+    </script>
+  </body>
 </html>
