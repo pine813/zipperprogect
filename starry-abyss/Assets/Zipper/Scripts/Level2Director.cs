@@ -67,6 +67,26 @@ public class Level2Director : MonoBehaviour
         finaleImage = image;
     }
 
+    void Awake()
+    {
+        // 第一关期间女孩不能出现在沙滩上：她的碰撞体会把球顶住，让球上不了岸、第一关永远不结算
+        SetGirlActive(false);
+    }
+
+    /// <summary>女孩只在第二关可见；激活时把她的碰撞体全部设成触发器，避免挡住球。</summary>
+    void SetGirlActive(bool active)
+    {
+        if (girl == null) return;
+        if (girl.gameObject.activeSelf != active) girl.gameObject.SetActive(active);
+        if (!active) return;
+
+        Collider[] colliders = girl.GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            if (colliders[i] != null) colliders[i].isTrigger = true;
+        }
+    }
+
     void Start()
     {
         Texture2D fromResources = Resources.Load<Texture2D>("GirlWithPearlEarring");
@@ -153,6 +173,7 @@ public class Level2Director : MonoBehaviour
         player.SetInputEnabled(true);
         player.SetAutoReturnToGround(true);
 
+        SetGirlActive(true);
         PlaceGirlRandomly();
         ResetClams();
 
@@ -298,7 +319,7 @@ public class Level2Director : MonoBehaviour
         // 参照玩家“当前”位置，而不是记录下来的出生点
         Vector3 playerPos = player != null ? player.transform.position : playerBeachSpawn;
 
-        // 取所有候选里离玩家最远的那个，保证不会刷在玩家旁边
+        // 全部候选都比一遍，取离玩家最远的（不再提前 break，避免刚好 16 米就贴脸）
         Vector3 best = Vector3.zero;
         float bestDistance = -1f;
 
@@ -314,12 +335,10 @@ public class Level2Director : MonoBehaviour
                 bestDistance = distance;
                 best = candidate;
             }
-
-            if (distance >= girlMinDistanceFromPlayer) break;
         }
 
-        // 硬兜底：还是太近就放到玩家正对面
-        if (bestDistance < girlMinDistanceFromPlayer)
+        // 兜底：还不够 30 米就放到玩家正对面
+        if (bestDistance < Mathf.Max(30f, girlMinDistanceFromPlayer))
         {
             float angle = Mathf.Atan2(playerPos.z, playerPos.x) + Mathf.PI;
             best = SampleGround((girlMinRadius + girlMaxRadius) * 0.5f, angle);
