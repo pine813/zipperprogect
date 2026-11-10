@@ -1457,8 +1457,8 @@ namespace StarryAbyss
             _endDepth.text = Mathf.RoundToInt(result.Depth * 100f) + "%";
             _endMassLabel.text = escaped ? "穿越星质" : "终局星质";
             _endMass.text = Mathf.RoundToInt(result.Mass) + "%";
-            if (_againLabel != null) _againLabel.text = escaped ? "继 续 星 旅" : "再 入 星 渊";
-            if (_againSub != null) _againSub.text = escaped ? "W A N D E R   O N" : "B E G I N   A G A I N";
+            if (_againLabel != null) _againLabel.text = "继 续 星 旅";
+            if (_againSub != null) _againSub.text = "C O N T I N U E";
             SetAutoNext(nextSeconds);
             _endGroup.alpha = 0f;
             _endGroup.blocksRaycasts = true;

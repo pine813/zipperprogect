@@ -660,14 +660,8 @@ namespace StarryAbyss
             if (Phase != GamePhase.End || _transitioning) return;
             _ui.PlayClick();
 
-            // 通关（逃出归航门）后点「继续星旅」：进入第二关 —— Zipper：海洋与珍珠
-            if (_lastResult.Escaped)
-            {
-                StartCoroutine(LoadSecondChapterRoutine());
-                return;
-            }
-
-            StartCoroutine(NextRoundRoutine());
+            // 第一关结束（归航或坠落都算）后，点击任意位置进入第二关：Zipper
+            StartCoroutine(LoadSecondChapterRoutine());
         }
 
         /// <summary>通关后过渡到第二关场景（Zipper 的海洋 + 沙滩 + 珍珠）。</summary>
@@ -3073,10 +3067,10 @@ namespace StarryAbyss
             _ui.SetPortalMarker(Vector3.zero, false);
             _ui.SetPlayerMarker(Vector3.zero, false);
             if (_orbitPreview != null) _orbitPreview.positionCount = 0;
-            // 通关时不再自动倒计时重开，等玩家点「继续星旅」进入第二关
-            _autoRemain = result.Escaped ? -1f : 10f;
+            // 结局界面不再自动倒计时重开：由玩家点击进入第二关
+            _autoRemain = -1f;
             _autoDisplay = 10;
-            _ui.ShowEnd(result, result.Escaped ? -1 : 10);
+            _ui.ShowEnd(result, -1);
             if (result.TrailScore > _bestTrailScore)
             {
                 _bestTrailScore = result.TrailScore;
@@ -3363,7 +3357,8 @@ namespace StarryAbyss
                         SkipCinematic();
                     break;
                 case GamePhase.End:
-                    if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+                    if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)
+                        || Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1) || Input.touchCount > 0)
                         NextRoundFromEnd();
                     if (Input.GetKeyDown(KeyCode.Escape))
                         QuitToTitle();
