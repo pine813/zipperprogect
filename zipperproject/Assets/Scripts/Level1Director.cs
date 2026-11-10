@@ -475,6 +475,38 @@ public class Level1Director : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 进入第二关（或玩家在水里又变成小鱼）时调用：鲨鱼恢复自由游动，
+    /// 并重新具备扫描 + 追杀小鱼的能力。
+    /// </summary>
+    public void ResumeSharkHunting()
+    {
+        // 第一关结束时鲨鱼可能已经被清掉了：第二关重新补几条，保证还能扫描/追杀
+        if (sharks.Count == 0 && sharkPrefab != null)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                float angle = Random.Range(0f, Mathf.PI * 2f);
+                float radius = Random.Range(16f, 34f);
+                Vector3 point = new Vector3(
+                    Mathf.Cos(angle) * radius,
+                    waterLevel - Random.Range(4f, 8f),
+                    Mathf.Sin(angle) * radius);
+                SpawnShark(point);
+            }
+        }
+
+        for (int i = 0; i < sharks.Count; i++)
+        {
+            SharkController shark = sharks[i];
+            if (shark == null) continue;
+            shark.SetHuntingEnabled(true);
+            shark.ResetToPatrol();
+        }
+
+        Debug.Log("[Level1] 鲨鱼恢复自由游动与追杀，共 " + sharks.Count + " 条");
+    }
+
     /// <summary>供测试/调试：临时开关鲨鱼狩猎。</summary>
     public void SetHuntingForAllSharks(bool hunting)
     {

@@ -146,6 +146,34 @@ public class Level2Director : MonoBehaviour
         }
 
         UpdatePearlHint(dt);
+
+        if (stage != Stage.Dormant) UpdateWaterRule();
+    }
+
+    /// <summary>第二关里球体碰到水就变小鱼，回到岸上再变回球；同时让鲨鱼恢复扫描/追杀。</summary>
+    void UpdateWaterRule()
+    {
+        if (player == null || level1 == null) return;
+
+        float waterLevel = level1.WaterLevel;
+        float y = player.transform.position.y;
+
+        // 回到岸上（明显高于水面）→ 变回球体
+        if (player.IsSwimming && y > waterLevel + 0.6f)
+        {
+            player.EnterBeach();
+            toast = "回到沙滩，变回球体";
+            return;
+        }
+
+        bool touchingWater = y <= waterLevel + 0.05f;
+        if (!touchingWater) return;
+        if (player.IsSwimming || player.CurrentVisual != PlayerVisual.Ball) return;
+
+        player.EnterWater();
+        level1.ResumeSharkHunting();
+        toast = "碰到水，变成小鱼了！小心鲨鱼";
+        Debug.Log("[Level2] 球碰到水 → 变成小鱼，鲨鱼恢复追杀");
     }
 
     /// <summary>沙滩阶段在女孩头顶浮一颗珍珠：不加文字也能看懂“要带珍珠来”。</summary>
@@ -176,6 +204,9 @@ public class Level2Director : MonoBehaviour
         SetGirlActive(true);
         PlaceGirlRandomly();
         ResetClams();
+
+        // 进入第二关：鲨鱼恢复自由游动，并重新可以扫描/追杀小鱼
+        if (level1 != null) level1.ResumeSharkHunting();
 
         if (level1 != null) level1.ShowHud = false;
 

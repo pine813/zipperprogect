@@ -28,6 +28,8 @@ namespace Zipper.EditorTools
         static float simulated;
         static float phaseTime;
         static int phase;
+    static int waterStep;
+    static Vector3 waterSpot;
         static float zoomSampleA = -1f;
         static Vector3 girlPositionBeforeRefresh;
         static MobileControls mobile;
@@ -147,6 +149,10 @@ namespace Zipper.EditorTools
                         Check(Mathf.Abs(level2.GirlRefreshInterval - 30f) < 0.01f,
                             "女孩刷新间隔 = " + level2.GirlRefreshInterval + " 秒");
 
+                        SharkController sharkAfterClear = level1.GetActiveShark(0);
+                        Check(sharkAfterClear != null && sharkAfterClear.HuntingEnabled,
+                            "进入第二关后鲨鱼恢复自由狩猎");
+
                         float minWidth = float.MaxValue;
                         float maxWidth = 0f;
                         ClamController sample = null;
@@ -169,10 +175,35 @@ namespace Zipper.EditorTools
                         Check(sample != null && Mathf.Abs(sample.PearlChance - 0.5f) < 0.01f,
                             "珍珠有无各半（" + (sample != null ? sample.PearlChance : -1f) + "）");
 
-                        phase = 41;
+                        phase = 40;
                         phaseTime = simulated;
                     }
                     else if (simulated - phaseTime > 5f) Fail("第一关过关后第二关没有接管");
+                    break;
+
+                case 40:
+                    // 球碰到水 → 变小鱼；回到岸上 → 变回球
+                    if (waterStep == 0)
+                    {
+                        waterSpot = player.transform.position;
+                        player.Teleport(new Vector3(0f, level1.WaterLevel - 0.3f, 0f));
+                        waterStep = 1;
+                        phaseTime = simulated;
+                    }
+                    else if (waterStep == 1 && simulated - phaseTime > 0.4f)
+                    {
+                        Check(player.IsSwimming, "球碰到水后变成小鱼");
+                        player.Teleport(waterSpot);
+                        waterStep = 2;
+                        phaseTime = simulated;
+                    }
+                    else if (waterStep == 2 && simulated - phaseTime > 0.8f)
+                    {
+                        Check(!player.IsSwimming, "回到岸上重新变回球体");
+                        waterStep = 0;
+                        phase = 41;
+                        phaseTime = simulated;
+                    }
                     break;
 
                 case 41:
