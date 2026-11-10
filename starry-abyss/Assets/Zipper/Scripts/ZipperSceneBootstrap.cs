@@ -13,7 +13,13 @@ public static class ZipperSceneBootstrap
     static void AfterSceneLoad()
     {
         OceanPlayerController player = Object.FindObjectOfType<OceanPlayerController>();
-        if (player == null) return; // 不是 Zipper 场景，什么都不做
+
+        // 第三关（失重飞行）也需要清掉上个章节残留的相机
+        if (player == null)
+        {
+            SetupBlueFlight();
+            return;
+        }
 
         Time.timeScale = 1f;
         AudioListener.pause = false;
@@ -91,5 +97,48 @@ public static class ZipperSceneBootstrap
         Debug.Log("[ZipperBootstrap] 相机 " + cameras.Length + " 台，关掉 " + disabled
                   + " 台，清掉女孩身上 " + removedFromGirl + " 个相机/监听器，保留 "
                   + (ours != null ? ours.name : "无") + "，玩家位置 " + player.transform.position.ToString("F1"));
+    }
+
+    /// <summary>第三关：只保留 BlueFlightEntry 指定的正交相机。</summary>
+    static void SetupBlueFlight()
+    {
+        BlueFlightEntry entry = Object.FindObjectOfType<BlueFlightEntry>();
+        if (entry == null) return; // 不是第三关场景
+
+        Time.timeScale = 1f;
+        Camera keep = entry.FlightCamera;
+        if (keep == null) return;
+
+        Camera[] cameras = Object.FindObjectsOfType<Camera>(true);
+        int disabled = 0;
+        for (int i = 0; i < cameras.Length; i++)
+        {
+            Camera cam = cameras[i];
+            if (cam == null || cam == keep) continue;
+            if (cam.gameObject.activeSelf)
+            {
+                cam.gameObject.SetActive(false);
+                disabled++;
+            }
+        }
+
+        keep.gameObject.SetActive(true);
+        keep.enabled = true;
+        keep.tag = "MainCamera";
+
+        AudioListener[] listeners = Object.FindObjectsOfType<AudioListener>(true);
+        bool kept = false;
+        for (int i = 0; i < listeners.Length; i++)
+        {
+            if (listeners[i] == null) continue;
+            if (!kept && listeners[i].gameObject.activeInHierarchy)
+            {
+                kept = true;
+                continue;
+            }
+            listeners[i].gameObject.SetActive(false);
+        }
+
+        Debug.Log("[ZipperBootstrap] 第三关：相机 " + cameras.Length + " 台，关掉 " + disabled + " 台，保留 " + keep.name);
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 第二关「沙滩」：
@@ -19,6 +20,8 @@ public class Level2Director : MonoBehaviour
     [SerializeField] OceanPlayerController player;
     [SerializeField] Level1Director level1;
     [SerializeField] GirlNPC girl;
+    const string ThirdChapterScene = "BlueFlightLevel";
+    bool chapterFinished;
     [SerializeField] ClamController[] clams;
 
     [Header("流程")]
@@ -148,7 +151,7 @@ public class Level2Director : MonoBehaviour
                     stage = Stage.Cleared;
                     toast = "通关！";
                     Debug.Log("[Level2] 结局画面放大完成，通关");
-                    WebBridge.NotifyGameComplete();
+                    GoToNextChapter();
                 }
                 break;
 
@@ -371,6 +374,22 @@ public class Level2Director : MonoBehaviour
 
         player.Teleport(playerBeachSpawn);
         return true;
+    }
+
+    /// <summary>第二关结束：有第三关场景就加载它，否则退回通知外壳。</summary>
+    void GoToNextChapter()
+    {
+        if (chapterFinished) return;
+        chapterFinished = true;
+
+        if (Application.CanStreamedLevelBeLoaded(ThirdChapterScene))
+        {
+            Debug.Log("[Level2] 进入第三关：" + ThirdChapterScene);
+            SceneManager.LoadScene(ThirdChapterScene);
+            return;
+        }
+
+        WebBridge.NotifyGameComplete();
     }
 
     void OnPearlCollected()
