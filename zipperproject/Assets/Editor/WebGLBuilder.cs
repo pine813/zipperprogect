@@ -21,10 +21,14 @@ namespace Zipper.EditorTools
 
         public static void Build()
         {
-            // 关掉压缩，方便本地用任意静态服务器直接打开；部署到 Pages 也一样能跑
-            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
-            PlayerSettings.WebGL.decompressionFallback = false;
+            // Brotli 压缩 + 引擎内解压兜底：体积约 1/3，GitHub Pages 这类静态托管也能直接跑
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
+            PlayerSettings.WebGL.decompressionFallback = true;
             PlayerSettings.runInBackground = true;
+
+            // 裁剪体积
+            PlayerSettings.stripEngineCode = true;
+            PlayerSettings.SetManagedStrippingLevel(BuildTargetGroup.WebGL, ManagedStrippingLevel.High);
 
             if (!EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL))
             {

@@ -51,6 +51,7 @@ public class Level1Director : MonoBehaviour
 
     State state = State.Ready;
     float stateTimer;
+    float shoreStuckTimer;
     float stamina;
     int attempt;
     int failures;
@@ -205,6 +206,7 @@ public class Level1Director : MonoBehaviour
         invulnerableUntil = Time.time + spawnInvulnerability;
         state = State.Swimming;
         stateTimer = 0f;
+        shoreStuckTimer = 0f;
         toast = "躲开鲨鱼，游到沙滩！";
     }
 
@@ -224,6 +226,22 @@ public class Level1Director : MonoBehaviour
         {
             ReachBeach();
             return;
+        }
+
+        // 兜底：已经游到岸边半径内却卡住（地形/碰撞/掉帧隧穿），1.5 秒后强制判定上岸
+        if (radius >= shoreRadius - 2f)
+        {
+            shoreStuckTimer += dt;
+            if (shoreStuckTimer >= 1.5f)
+            {
+                Debug.Log("[Level1] 玩家已在岸边卡住 1.5 秒，强制判定上岸");
+                ReachBeach();
+                return;
+            }
+        }
+        else
+        {
+            shoreStuckTimer = 0f;
         }
 
         if (Time.time >= invulnerableUntil)

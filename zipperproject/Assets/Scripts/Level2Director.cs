@@ -67,6 +67,26 @@ public class Level2Director : MonoBehaviour
         finaleImage = image;
     }
 
+    void Awake()
+    {
+        // 第一关期间女孩不能出现在沙滩上：她的碰撞体会把球顶住，让球上不了岸、第一关永远不结算
+        SetGirlActive(false);
+    }
+
+    /// <summary>女孩只在第二关可见；激活时把她的碰撞体全部设成触发器，避免挡住球。</summary>
+    void SetGirlActive(bool active)
+    {
+        if (girl == null) return;
+        if (girl.gameObject.activeSelf != active) girl.gameObject.SetActive(active);
+        if (!active) return;
+
+        Collider[] colliders = girl.GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            if (colliders[i] != null) colliders[i].isTrigger = true;
+        }
+    }
+
     void Start()
     {
         Texture2D fromResources = Resources.Load<Texture2D>("GirlWithPearlEarring");
@@ -153,6 +173,7 @@ public class Level2Director : MonoBehaviour
         player.SetInputEnabled(true);
         player.SetAutoReturnToGround(true);
 
+        SetGirlActive(true);
         PlaceGirlRandomly();
         ResetClams();
 
@@ -295,7 +316,10 @@ public class Level2Director : MonoBehaviour
     {
         if (girl == null) return;
 
-        // 取所有候选里离玩家最远的那个，保证不会刷在出生点旁边
+        // 参照玩家“当前”位置，而不是记录下来的出生点
+        Vector3 playerPos = player != null ? player.transform.position : playerBeachSpawn;
+
+        // 全部候选都比一遍，取离玩家最远的（不再提前 break，避免刚好 16 米就贴脸）
         Vector3 best = Vector3.zero;
         float bestDistance = -1f;
 
@@ -304,19 +328,26 @@ public class Level2Director : MonoBehaviour
             float angle = Random.Range(0f, Mathf.PI * 2f);
             float radius = Random.Range(girlMinRadius, girlMaxRadius);
             Vector3 candidate = SampleGround(radius, angle);
-            float distance = Vector3.Distance(candidate, playerBeachSpawn);
+            float distance = Vector3.Distance(candidate, playerPos);
 
             if (distance > bestDistance)
             {
                 bestDistance = distance;
                 best = candidate;
             }
+        }
 
-            if (distance >= girlMinDistanceFromPlayer) break;
+        // 兜底：还不够 30 米就放到玩家正对面
+        if (bestDistance < Mathf.Max(30f, girlMinDistanceFromPlayer))
+        {
+            float angle = Mathf.Atan2(playerPos.z, playerPos.x) + Mathf.PI;
+            best = SampleGround((girlMinRadius + girlMaxRadius) * 0.5f, angle);
+            bestDistance = Vector3.Distance(best, playerPos);
         }
 
         girl.PlaceAt(best);
-        Debug.Log("[Level2] 女孩放在距出生点 " + bestDistance.ToString("F1") + " 米处");
+        Debug.Log("[Level2] 女孩放在距玩家 " + bestDistance.ToString("F1") + " 米处，玩家 "
+                  + playerPos.ToString("F1") + "，女孩 " + best.ToString("F1"));
     }
 
     static Vector3 SampleGround(float radius, float angle)
