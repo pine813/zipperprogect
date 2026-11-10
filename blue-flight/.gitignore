@@ -1,0 +1,21 @@
+# Source-only Unity project. Generated and playable outputs stay local.
+/Library/
+/Temp/
+/Obj/
+/Build/
+/Builds/
+/Logs/
+/UserSettings/
+/MemoryCaptures/
+/.vs/
+/.idea/
+*.exe
+*.dll
+*.zip
+*.7z
+*.unitypackage
+*.log
+*.pdb
+*.csproj
+*.sln
+*.slnx
