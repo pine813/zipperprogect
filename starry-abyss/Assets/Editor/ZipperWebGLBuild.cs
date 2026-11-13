@@ -21,10 +21,15 @@ namespace StarryAbyss.EditorTools
 
         public static void Build()
         {
-            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
-            PlayerSettings.WebGL.decompressionFallback = false;
+            // 用 Brotli 压缩 + JS 解压兜底（GitHub Pages 不会给 .br 设 Content-Encoding，靠 fallback 解）
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
+            PlayerSettings.WebGL.decompressionFallback = true;
             PlayerSettings.runInBackground = true;
             PlayerSettings.colorSpace = ColorSpace.Linear;
+
+            // 裁剪体积：剥掉引擎里没用到的代码 + 高强度托管裁剪
+            PlayerSettings.stripEngineCode = true;
+            PlayerSettings.SetManagedStrippingLevel(BuildTargetGroup.WebGL, ManagedStrippingLevel.High);
 
             if (!EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL))
             {
@@ -32,6 +37,11 @@ namespace StarryAbyss.EditorTools
                 EditorApplication.Exit(2);
                 return;
             }
+
+            // 手机横屏模板：全屏画布 + 竖屏提示 + 横屏锁定
+            PlayerSettings.WebGL.template = "PROJECT:MobileLandscape";
+            PlayerSettings.defaultWebScreenWidth = 1280;
+            PlayerSettings.defaultWebScreenHeight = 720;
 
             // 按 Build Settings 里启用的场景打包（Main = 星渊归途，ZipperLevel = 第二关）
             var scenes = new System.Collections.Generic.List<string>();

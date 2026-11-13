@@ -1262,8 +1262,8 @@ namespace StarryAbyss
                 float turn = _autoTurn;
                 if (Mathf.Abs(turn) < 0.01f)
                 {
-                    if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) turn += 1f;
-                    if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) turn -= 1f;
+                    if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow) || TouchBridge.LeftHeld) turn += 1f;
+                    if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow) || TouchBridge.RightHeld) turn -= 1f;
                 }
                 p.SteerVisual = Mathf.MoveTowards(p.SteerVisual, turn, dt * 5f);
                 if (Mathf.Abs(turn) > 0.01f)
@@ -3326,34 +3326,36 @@ namespace StarryAbyss
             switch (Phase)
             {
                 case GamePhase.Title:
-                    if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+                    if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)
+                        || TouchBridge.ConfirmDown)
                         StartFromTitle();
                     break;
                 case GamePhase.Playing:
-                    if (Input.GetKeyDown(KeyCode.Space)) TrySlingshot();
-                    if (Input.GetKeyDown(KeyCode.P) || Input.GetKeyDown(KeyCode.Escape))
+                    if (Input.GetKeyDown(KeyCode.Space) || TouchBridge.ConfirmDown) TrySlingshot();
+                    if (Input.GetKeyDown(KeyCode.P) || Input.GetKeyDown(KeyCode.Escape) || TouchBridge.PauseDown)
                         TogglePause();
                     break;
                 case GamePhase.Paused:
-                    if (Input.GetKeyDown(KeyCode.P) || Input.GetKeyDown(KeyCode.Escape))
+                    if (Input.GetKeyDown(KeyCode.P) || Input.GetKeyDown(KeyCode.Escape) || TouchBridge.PauseDown)
                         ResumeFromPause();
                     break;
                 case GamePhase.Boon:
                     int dir = 0;
-                    if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow)) dir = -1;
-                    if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow)) dir = 1;
+                    if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow) || TouchBridge.LeftDown) dir = -1;
+                    if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow) || TouchBridge.RightDown) dir = 1;
                     if (dir != 0 && _boonOptions.Count > 0)
                     {
                         _boonSelection = (_boonSelection + dir + _boonOptions.Count) % _boonOptions.Count;
                         _ui.SetBoonSelection(_boonSelection);
                         _audio.PlayUi();
                     }
-                    if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+                    if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)
+                        || TouchBridge.ConfirmDown)
                         ChooseBoon(_boonSelection);
                     break;
                 case GamePhase.DeathCinematic:
                 case GamePhase.WinCinematic:
-                    if (Input.GetKeyDown(KeyCode.Space))
+                    if (Input.GetKeyDown(KeyCode.Space) || TouchBridge.ConfirmDown)
                         SkipCinematic();
                     break;
                 case GamePhase.End:

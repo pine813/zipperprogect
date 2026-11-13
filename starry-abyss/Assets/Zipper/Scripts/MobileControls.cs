@@ -28,6 +28,13 @@ public class MobileControls : MonoBehaviour
 
     void Awake()
     {
+        // 手机屏幕更小：按屏幕高度缩放摇杆与按键
+        float scale = Mathf.Clamp(Screen.height / 900f, 0.5f, 1.2f);
+        joystickRadius *= scale;
+        joystickMargin *= scale;
+        buttonRadius *= scale;
+        buttonMargin *= scale;
+
         ringTexture = BuildRing(160, 0.82f, 0.16f);
         discTexture = BuildDisc(128);
         triangleUpTexture = BuildTriangle(128, true);
