@@ -59,8 +59,8 @@
 
   <div id="rotate">
     <div class="icon">&#128241;</div>
-    <div class="t">璇锋í灞忔父鐜?/div>
-    <div class="s">鎶婃墜鏈烘í杩囨潵<br>灏辫兘杩涘叆娓告垙</div>
+    <div class="t">请横屏游玩</div>
+    <div class="s">把手机横过来<br>就能进入游戏</div>
   </div>
 
   <div id="err"></div>
@@ -83,21 +83,22 @@
     }
 
     var buildUrl = "Build";
-    var loaderUrl = buildUrl + "/WebGL.loader.js?v=20261113a";
+    var loaderUrl = buildUrl + "/WebGL.loader.js?v=20261113b";
     var config = {
-      dataUrl: buildUrl + "/WebGL.data.unityweb?v=20261113a",
-      frameworkUrl: buildUrl + "/WebGL.framework.js.unityweb?v=20261113a",
-      codeUrl: buildUrl + "/WebGL.wasm.unityweb?v=20261113a",
+      dataUrl: buildUrl + "/WebGL.data.unityweb?v=20261113b",
+      frameworkUrl: buildUrl + "/WebGL.framework.js.unityweb?v=20261113b",
+      codeUrl: buildUrl + "/WebGL.wasm.unityweb?v=20261113b",
       streamingAssetsUrl: "StreamingAssets",
       companyName: "pine813",
       productName: "Zipper Demo",
       productVersion: "1.0",
       showBanner: unityShowBanner,
-      // 鎵嬫満鎬ц兘鏈夐檺锛岄檺鍒舵覆鏌撳垎杈ㄧ巼锛岀敾闈㈡竻鏅板害瓒冲涓旀洿鐪佺數
+      // 手机性能有限，限制渲染分辨率，画面清晰度足够且更省电
       devicePixelRatio: Math.min(window.devicePixelRatio || 1, 1.75),
     };
 
-    // 棣栨瑙︽懜鏃跺皾璇曢攣瀹氭í灞忓苟杩涘叆鍏ㄥ睆锛坕OS 闇€鐢ㄦ埛鎵嬪娍锛?    var triedFullscreen = false;
+    // 首次触摸时尝试锁定横屏并进入全屏（iOS 需用户手势）
+    var triedFullscreen = false;
     function tryLockLandscape() {
       if (triedFullscreen) return;
       triedFullscreen = true;
@@ -131,11 +132,11 @@
         window.unityInstance = unityInstance;
       }).catch(function (message) {
         loading.style.display = "none";
-        showError("鍔犺浇澶辫触锛? + message);
+        showError("加载失败：" + message);
       });
     };
     script.onerror = function () {
-      showError("鏃犳硶鍔犺浇娓告垙璧勬簮锛岃妫€鏌ョ綉缁滃悗鍒锋柊");
+      showError("无法加载游戏资源，请检查网络后刷新");
     };
     document.body.appendChild(script);
   </script>
