@@ -21,9 +21,33 @@ namespace StarryAbyss.EditorTools
 
         public static void Build()
         {
-            // 用 Brotli 压缩 + JS 解压兜底（GitHub Pages 不会给 .br 设 Content-Encoding，靠 fallback 解）
-            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
-            PlayerSettings.WebGL.decompressionFallback = true;
+            BuildInternal(false);
+        }
+
+        /// <summary>手机横屏版：Gzip 压缩（全平台解压兜底可用）+ 全屏横屏模板。</summary>
+        public static void BuildMobile()
+        {
+            BuildInternal(true);
+        }
+
+        static void BuildInternal(bool mobile)
+        {
+            if (mobile)
+            {
+                // 手机浏览器对 Brotli 的 DecompressionStream 支持很差，改用 Gzip + 内置解压
+                PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
+                PlayerSettings.WebGL.decompressionFallback = true;
+                PlayerSettings.WebGL.template = "PROJECT:MobileLandscape";
+                PlayerSettings.defaultWebScreenWidth = 1280;
+                PlayerSettings.defaultWebScreenHeight = 720;
+            }
+            else
+            {
+                PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
+                PlayerSettings.WebGL.decompressionFallback = true;
+                PlayerSettings.WebGL.template = "APPLICATION:Default";
+            }
+
             PlayerSettings.runInBackground = true;
             PlayerSettings.colorSpace = ColorSpace.Linear;
 
@@ -37,11 +61,6 @@ namespace StarryAbyss.EditorTools
                 EditorApplication.Exit(2);
                 return;
             }
-
-            // 手机横屏模板：全屏画布 + 竖屏提示 + 横屏锁定
-            PlayerSettings.WebGL.template = "PROJECT:MobileLandscape";
-            PlayerSettings.defaultWebScreenWidth = 1280;
-            PlayerSettings.defaultWebScreenHeight = 720;
 
             // 按 Build Settings 里启用的场景打包（Main = 星渊归途，ZipperLevel = 第二关）
             var scenes = new System.Collections.Generic.List<string>();
