@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#05070a">
+  <title>Zipper Demo</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0; width: 100%; height: 100%;
+      overflow: hidden; background: #05070a;
+      -webkit-user-select: none; user-select: none;
+      -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+      overscroll-behavior: none; touch-action: none;
+    }
+    #unity-container { position: fixed; inset: 0; }
+    #unity-canvas { width: 100%; height: 100%; display: block; background: #05070a; touch-action: none; outline: none; }
+    #loading {
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: center; flex-direction: column;
+      background: radial-gradient(circle at 50% 40%, #0d1a2e 0%, #05070a 70%);
+      color: #cfe6ff; font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    #loading .title { font-size: 26px; letter-spacing: 8px; font-weight: 600; color: #eaf4ff; }
+    #loading .sub { margin-top: 10px; font-size: 12px; letter-spacing: 3px; opacity: .55; }
+    #bar { width: min(62vw, 420px); height: 6px; margin-top: 26px; background: #121e31; border-radius: 3px; overflow: hidden; }
+    #fill { height: 100%; width: 0%; background: linear-gradient(90deg, #3f9fe0, #9fe3ff); transition: width .2s ease; }
+    #pct { margin-top: 10px; font-size: 13px; letter-spacing: 2px; opacity: .65; }
+    #rotate {
+      position: fixed; inset: 0; z-index: 20; display: none;
+      align-items: center; justify-content: center; flex-direction: column;
+      background: #05070a; color: #cfe6ff; text-align: center; padding: 28px;
+      font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    #rotate .icon { font-size: 54px; margin-bottom: 16px; animation: rot 1.8s ease-in-out infinite; }
+    #rotate .t { font-size: 19px; font-weight: 600; letter-spacing: 2px; }
+    #rotate .s { margin-top: 10px; font-size: 13px; opacity: .6; line-height: 1.7; }
+    @keyframes rot { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(90deg); } }
+    @media (orientation: portrait) { #rotate { display: flex; } }
+    #err { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 30; display: none;
+           background: #8c1c1c; color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div id="unity-container">
+    <canvas id="unity-canvas" width=1280 height=720 tabindex="-1"></canvas>
+  </div>
+
+  <div id="loading">
+    <div class="title">ZIPPER</div>
+    <div class="sub">G A M E &nbsp; J A M &nbsp; D E M O</div>
+    <div id="bar"><div id="fill"></div></div>
+    <div id="pct">0%</div>
+  </div>
+
+  <div id="rotate">
+    <div class="icon">&#128241;</div>
+    <div class="t">璇锋í灞忔父鐜?/div>
+    <div class="s">鎶婃墜鏈烘í杩囨潵<br>灏辫兘杩涘叆娓告垙</div>
+  </div>
+
+  <div id="err"></div>
+
+  <script>
+    var canvas = document.querySelector("#unity-canvas");
+    var loading = document.querySelector("#loading");
+    var fill = document.querySelector("#fill");
+    var pct = document.querySelector("#pct");
+    var errBox = document.querySelector("#err");
+
+    function showError(msg) {
+      errBox.style.display = "block";
+      errBox.textContent = msg;
+    }
+
+    function unityShowBanner(msg, type) {
+      if (type === "error") showError(msg);
+      else console.log("[unity]", msg);
+    }
+
+    var buildUrl = "Build";
+    var loaderUrl = buildUrl + "/WebGL.loader.js?v=20261113a";
+    var config = {
+      dataUrl: buildUrl + "/WebGL.data.unityweb?v=20261113a",
+      frameworkUrl: buildUrl + "/WebGL.framework.js.unityweb?v=20261113a",
+      codeUrl: buildUrl + "/WebGL.wasm.unityweb?v=20261113a",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "pine813",
+      productName: "Zipper Demo",
+      productVersion: "1.0",
+      showBanner: unityShowBanner,
+      // 鎵嬫満鎬ц兘鏈夐檺锛岄檺鍒舵覆鏌撳垎杈ㄧ巼锛岀敾闈㈡竻鏅板害瓒冲涓旀洿鐪佺數
+      devicePixelRatio: Math.min(window.devicePixelRatio || 1, 1.75),
+    };
+
+    // 棣栨瑙︽懜鏃跺皾璇曢攣瀹氭í灞忓苟杩涘叆鍏ㄥ睆锛坕OS 闇€鐢ㄦ埛鎵嬪娍锛?    var triedFullscreen = false;
+    function tryLockLandscape() {
+      if (triedFullscreen) return;
+      triedFullscreen = true;
+      try {
+        var el = document.documentElement;
+        var req = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (req) {
+          var p = req.call(el);
+          if (p && p.then) {
+            p.then(function () {
+              if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock("landscape").catch(function () {});
+              }
+            }).catch(function () {});
+          }
+        }
+      } catch (e) { }
+    }
+    window.addEventListener("pointerdown", tryLockLandscape, { once: true });
+    window.addEventListener("touchstart", tryLockLandscape, { once: true });
+
+    var script = document.createElement("script");
+    script.src = loaderUrl;
+    script.onload = function () {
+      createUnityInstance(canvas, config, function (progress) {
+        var p = Math.round(progress * 100);
+        fill.style.width = p + "%";
+        pct.textContent = p + "%";
+      }).then(function (unityInstance) {
+        loading.style.display = "none";
+        window.unityInstance = unityInstance;
+      }).catch(function (message) {
+        loading.style.display = "none";
+        showError("鍔犺浇澶辫触锛? + message);
+      });
+    };
+    script.onerror = function () {
+      showError("鏃犳硶鍔犺浇娓告垙璧勬簮锛岃妫€鏌ョ綉缁滃悗鍒锋柊");
+    };
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>
