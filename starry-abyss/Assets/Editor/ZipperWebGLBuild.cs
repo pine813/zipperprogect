@@ -34,9 +34,10 @@ namespace StarryAbyss.EditorTools
         {
             if (mobile)
             {
-                // 手机浏览器对 Brotli 的 DecompressionStream 支持很差，改用 Gzip + 内置解压
-                PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
-                PlayerSettings.WebGL.decompressionFallback = true;
+                // 手机浏览器普遍没有 DecompressionStream（Brotli/Gzip 兜底都会失败），
+                // 所以手机版直接不压缩，传原始文件，任何浏览器都能跑
+                PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
+                PlayerSettings.WebGL.decompressionFallback = false;
                 PlayerSettings.WebGL.template = "PROJECT:MobileLandscape";
                 PlayerSettings.defaultWebScreenWidth = 1280;
                 PlayerSettings.defaultWebScreenHeight = 720;
